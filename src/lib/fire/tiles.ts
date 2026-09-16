@@ -1,3 +1,4 @@
+import { assetUrl } from "@/lib/asset";
 import { MAP_SIZE_UNITS } from "./coords.ts";
 import { type GameMap } from "./maps.ts";
 
@@ -30,7 +31,7 @@ export function tileKey(mapId: string, z: number, tx: number, ty: number): strin
 }
 
 export function tileUrl(map: GameMap, z: number, tx: number, ty: number): string {
-  if (z <= LOCAL_MAX_ZOOM) return `/maps/${map.id}/zoom_${z}/${tx}_${ty}.webp`;
+  if (z <= LOCAL_MAX_ZOOM) return assetUrl(`maps/${map.id}/zoom_${z}/${tx}_${ty}.webp`);
   return `${map.tiles}/zoom_${z}/${tx}_${ty}.webp`;
 }
 
@@ -73,7 +74,7 @@ export function getBaseMap(map: GameMap): TileRec {
   const hit = BASE.get(map.id);
   if (hit) return hit;
   const rec: TileRec = { img: new Image(), status: "loading" };
-  loadImage(`/maps/${map.id}.webp`, rec);
+  loadImage(assetUrl(`maps/${map.id}.webp`), rec);
   BASE.set(map.id, rec);
   return rec;
 }

@@ -1,3 +1,4 @@
+import { assetUrl } from "@/lib/asset";
 import { cn } from "@/lib/utils";
 
 export function GameIcon({
@@ -9,7 +10,7 @@ export function GameIcon({
 }) {
   return (
     <img
-      src={`/game/${name}.webp`}
+      src={assetUrl(`game/${name}.webp`)}
       alt=""
       draggable={false}
       className={cn("pixel-icon pointer-events-none object-contain", className)}
