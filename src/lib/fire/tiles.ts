@@ -4,7 +4,8 @@ import { type GameMap } from "./maps.ts";
 
 export const TILE_PX = 256;
 export const LOCAL_MAX_ZOOM = 3;
-const CACHE_LIMIT = 96;
+const CACHE_LIMIT = 180;
+const MAX_INFLIGHT = 6;
 
 type Status = "loading" | "ok" | "fail";
 export interface TileRec {
@@ -16,6 +17,9 @@ const CACHE = new Map<string, TileRec>();
 const BASE = new Map<string, TileRec>();
 const ORDER: string[] = [];
 const listeners = new Set<() => void>();
+const queue: Array<() => void> = [];
+let inflight = 0;
+let loadGen = 0;
 
 export function onTilesChange(fn: () => void): () => void {
   listeners.add(fn);
@@ -57,24 +61,59 @@ function evict() {
   }
 }
 
-function loadImage(src: string, rec: TileRec) {
-  rec.img.decoding = "async";
-  rec.img.onload = () => {
-    rec.status = "ok";
-    ping();
+function pump() {
+  while (inflight < MAX_INFLIGHT && queue.length) {
+    const next = queue.shift();
+    if (next) next();
+  }
+}
+
+function loadImage(src: string, rec: TileRec, gen: number) {
+  const start = () => {
+    if (gen !== loadGen) {
+      rec.status = "fail";
+      return;
+    }
+    inflight += 1;
+    rec.img.decoding = "async";
+    rec.img.onload = () => {
+      inflight = Math.max(0, inflight - 1);
+      if (gen !== loadGen) {
+        rec.status = "fail";
+        pump();
+        return;
+      }
+      rec.status = "ok";
+      if (typeof rec.img.decode === "function") {
+        rec.img.decode().catch(() => undefined).finally(ping);
+      } else {
+        ping();
+      }
+      pump();
+    };
+    rec.img.onerror = () => {
+      inflight = Math.max(0, inflight - 1);
+      rec.status = "fail";
+      ping();
+      pump();
+    };
+    rec.img.src = src;
   };
-  rec.img.onerror = () => {
-    rec.status = "fail";
-    ping();
-  };
-  rec.img.src = src;
+  if (inflight >= MAX_INFLIGHT) queue.push(start);
+  else start();
+}
+
+export function resetTileLoads() {
+  loadGen += 1;
+  queue.length = 0;
+  inflight = 0;
 }
 
 export function getBaseMap(map: GameMap): TileRec {
   const hit = BASE.get(map.id);
   if (hit) return hit;
   const rec: TileRec = { img: new Image(), status: "loading" };
-  loadImage(assetUrl(`maps/${map.id}.webp`), rec);
+  loadImage(assetUrl(`maps/${map.id}.webp`), rec, loadGen);
   BASE.set(map.id, rec);
   return rec;
 }
@@ -87,7 +126,7 @@ export function getTile(map: GameMap, z: number, tx: number, ty: number): TileRe
     return hit;
   }
   const rec: TileRec = { img: new Image(), status: "loading" };
-  loadImage(tileUrl(map, z, tx, ty), rec);
+  loadImage(tileUrl(map, z, tx, ty), rec, loadGen);
   CACHE.set(key, rec);
   touch(key);
   evict();
@@ -122,9 +161,6 @@ export function ancestorSource(
 export function prefetchBase(map: GameMap) {
   getBaseMap(map);
   getTile(map, 0, 0, 0);
-  for (let ty = 0; ty < 2; ty++) {
-    for (let tx = 0; tx < 2; tx++) getTile(map, 1, tx, ty);
-  }
 }
 
 export function canvasDpr(cssW: number): number {
