@@ -12,7 +12,6 @@ import { grokPwaPlugin } from "./scripts/grok-pwa-plugin.mjs";
 import { appEnvPlugin } from "./scripts/app-env-plugin.mjs";
 import { isMigrationFile } from "./scripts/migration-plan.mjs";
 
-/** The files `src/lib/db.ts` globs — same directory, same non-recursive scope. */
 function hasGlobbedMigrations(root: string): boolean {
   try {
     return readdirSync(join(root, "migrations")).some(isMigrationFile);
@@ -61,10 +60,7 @@ function authPopupPlugin(): Plugin {
             res.end("Method Not Allowed");
             return;
           }
-
-          const host = String(
-            req.headers["x-forwarded-host"] ?? req.headers.host ?? "localhost:8080",
-          );
+          const host = String(req.headers["x-forwarded-host"] ?? req.headers.host ?? "localhost:8080");
           const proto = String(
             req.headers["x-forwarded-proto"] ??
               ((req.socket as { encrypted?: boolean } | undefined)?.encrypted ? "https" : "http"),
@@ -79,31 +75,19 @@ function authPopupPlugin(): Plugin {
             }
           }
           if (!requestHeaders.has("host")) requestHeaders.set("host", host);
-
-          const request = new Request(`${proto}://${host}${rawUrl}`, {
-            method: "GET",
-            headers: requestHeaders,
-          });
-
+          const request = new Request(`${proto}://${host}${rawUrl}`, { method: "GET", headers: requestHeaders });
           const mod = (await server.ssrLoadModule("/src/lib/auth/popup.server.ts")) as {
             handleAuthPopupRequest: (req: Request) => Promise<Response>;
           };
           const response = await mod.handleAuthPopupRequest(request);
-
           res.statusCode = response.status;
-          const setCookies =
-            typeof response.headers.getSetCookie === "function"
-              ? response.headers.getSetCookie()
-              : [];
+          const setCookies = typeof response.headers.getSetCookie === "function" ? response.headers.getSetCookie() : [];
           response.headers.forEach((value, key) => {
             if (key.toLowerCase() === "set-cookie") return;
             res.setHeader(key, value);
           });
-          for (const cookie of setCookies) {
-            res.appendHeader("set-cookie", cookie);
-          }
-          const body = Buffer.from(await response.arrayBuffer());
-          res.end(body);
+          for (const cookie of setCookies) res.appendHeader("set-cookie", cookie);
+          res.end(Buffer.from(await response.arrayBuffer()));
         } catch (err) {
           console.error("[app-builder] /auth/popup handler failed:", err);
           if (!res.headersSent) {
@@ -117,18 +101,12 @@ function authPopupPlugin(): Plugin {
   };
 }
 
+const pages = process.env.GITHUB_PAGES === "1";
+
 export default defineConfig(({ command, isPreview }) => ({
-  base: process.env.GITHUB_PAGES === "1" ? "/wardogs-fdc-web/" : "/",
-  server: {
-    host: "0.0.0.0",
-    port: 8080,
-    strictPort: true,
-  },
-  preview: {
-    host: "127.0.0.1",
-    port: 8081,
-    strictPort: true,
-  },
+  base: pages ? "/wardogs-fdc-web/" : "/",
+  server: { host: "0.0.0.0", port: 8080, strictPort: true },
+  preview: { host: "127.0.0.1", port: 8081, strictPort: true },
   resolve: { tsconfigPaths: true },
   plugins: [
     pgliteBootstrapPlugin(),
@@ -141,7 +119,7 @@ export default defineConfig(({ command, isPreview }) => ({
       ? [
           nitro({
             preset: process.env.NITRO_PRESET || "vercel",
-            serverDir: "./server",
+            ...(pages ? {} : { serverDir: "./server" }),
           }),
         ]
       : []),
