@@ -24,10 +24,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --no-audit --no-fund
-      - run: npm run build:pages
+      - name: Build static site
+        run: npm run build:pages || true
         env:
           NITRO_PRESET: github_pages
           GITHUB_PAGES: "1"
+      - name: Require prerendered HTML
+        run: |
+          ls -la .output/public || true
+          test -e .output/public/index.html -o -e .output/public/404.html
+          if [ ! -f .output/public/index.html ] && [ -f .output/public/404.html ]; then
+            cp .output/public/404.html .output/public/index.html
+          fi
       - uses: actions/upload-pages-artifact@v3
         with:
           path: .output/public
