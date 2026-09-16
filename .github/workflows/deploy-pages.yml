@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,16 +36,15 @@ jobs:
           if [ ! -f .output/public/index.html ] && [ -f .output/public/404.html ]; then
             cp .output/public/404.html .output/public/index.html
           fi
-      - uses: actions/upload-pages-artifact@v3
+          touch .output/public/.nojekyll
+      - name: Publish gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: .output/public
+          force_orphan: true
+      - name: Also try official Pages deploy
+        continue-on-error: true
+        uses: actions/upload-pages-artifact@v3
         with:
           path: .output/public
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
