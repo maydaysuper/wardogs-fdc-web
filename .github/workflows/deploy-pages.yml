@@ -24,20 +24,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --no-audit --no-fund
-      - name: Build client-only SPA
-        run: npx vite build --config vite.spa.config.ts
-        env:
-          GITHUB_PAGES: "1"
-      - name: Prepare publish dir
-        run: |
-          cp dist-spa/spa.html dist-spa/index.html
-          cp dist-spa/spa.html dist-spa/404.html
-          touch dist-spa/.nojekyll
-          ls -la dist-spa dist-spa/assets
-      - name: Publish gh-pages branch
+      - name: Build static frontend
+        run: npm run build:pages
+      - name: Publish gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: dist-spa
+          publish_dir: dist
           force_orphan: true
-          keep_files: false

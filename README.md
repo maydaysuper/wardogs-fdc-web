@@ -4,15 +4,17 @@
 
 ## 在线版
 
-地址：https://maydaysuper.github.io/wardogs-fdc-web/
+https://maydaysuper.github.io/wardogs-fdc-web/
 
-如果打开是 GitHub 的 404，先开一下 Pages（只要做一次）：
+推到 `main` 会自动用客户端 SPA 重新发布。Pages 源选 `gh-pages` / `(root)`。
 
-1. 打开 https://github.com/maydaysuper/wardogs-fdc-web/settings/pages
-2. **Source** 选 **Deploy from a branch**
-3. Branch 选 `gh-pages`，文件夹选 `/ (root)`
-4. Save，等 1–2 分钟再打开上面的地址
+## 构建
 
-源码：https://github.com/maydaysuper/wardogs-fdc-web
+```bash
+npm install
+npm run dev          # 8080 纯前端
+npm run build:pages  # GitHub Pages 静态包 → dist/
+npm run build:start  # 旧 TanStack Start / Nitro 包
+```
 
-`drum-ivory-gem-marble.grok.me` 是旧预览，不会跟仓库同步。
+线上只跑客户端包，不再依赖 SSR 预渲染。
