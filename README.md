@@ -4,6 +4,16 @@
 
 Windows 便携包在 [wardogs-fdc](https://github.com/maydaysuper/wardogs-fdc)。
 
+## 在线版
+
+最新网页（随 `main` 自动发布）：
+
+https://maydaysuper.github.io/wardogs-fdc-web/
+
+源码：https://github.com/maydaysuper/wardogs-fdc-web
+
+`drum-ivory-gem-marble.grok.me` 是旧预览，不会跟仓库同步。看新功能请用上面的 Pages 地址，必要时强制刷新。
+
 ## 做什么
 
 - **火力**：L81 迫击炮 / SPH-2 自行火炮密位，敌我坐标或已知距离，射角、方位、落弹时间
