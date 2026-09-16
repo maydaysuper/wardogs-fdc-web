@@ -2,10 +2,16 @@
 
 网页版火力诸元 + 运输账本。
 
-## 在线版
+## 发给朋友（国内直连）
 
-- 海外：https://maydaysuper.github.io/wardogs-fdc-web/
-- 国内直连：把静态站放到阿里云 OSS 或腾讯云 COS。操作清单见 [国内部署.md](./国内部署.md)
+https://testingcf.jsdelivr.net/gh/maydaysuper/wardogs-fdc-web@gh-pages/index.html
+
+这是 jsDelivr 国内节点，走仓库已发布的静态站，不用梯子、不用备案、不用开云账号。
+
+备用镜像：
+
+- https://cdn.jsdmirror.com/gh/maydaysuper/wardogs-fdc-web@gh-pages/index.html
+- 海外 GitHub Pages：https://maydaysuper.github.io/wardogs-fdc-web/
 
 ## 自定义域名
 
@@ -14,4 +20,4 @@
 3. Settings → Pages → Custom domain 填同一个域名并等 HTTPS
 4. 再 push 或手动跑一次 Deploy GitHub Pages
 
-没有域名时站点仍是 github.io 路径。大陆朋友请走 OSS/COS，不要发 github.io。
+阿里云 OSS / 腾讯云 COS 仍可用，步骤见 [国内部署.md](./国内部署.md)。国内分享优先用上面的 jsDelivr 链接。

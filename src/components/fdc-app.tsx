@@ -260,7 +260,7 @@ export function FdcApp() {
         <div className="pointer-events-auto flex items-center gap-1 rounded-lg hud-glass px-1 py-1 shadow-border desk:gap-2 desk:px-2 desk:py-1.5">
           <Crosshair className="ml-1 hidden size-4 text-accent desk:block" strokeWidth={1.75} />
           <h1 className="hidden text-sm font-semibold tracking-tight desk:block">WARDOGS 诸元</h1>
-          <span className="hidden font-mono text-[10px] text-subtle desk:inline">0916d</span>
+          <span className="hidden font-mono text-[10px] text-subtle desk:inline">0916e</span>
           <div className="grid grid-cols-2 gap-1 rounded-md bg-hud-2 p-0.5">
             <button
               type="button"

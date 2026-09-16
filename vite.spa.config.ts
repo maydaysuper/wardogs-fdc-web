@@ -2,10 +2,8 @@ import { defineConfig } from "vite";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
-const pages = process.env.GITHUB_PAGES === "1";
-
 export default defineConfig({
-  base: pages ? "/wardogs-fdc-web/" : "/",
+  base: "./",
   server: { host: "0.0.0.0", port: 8080, strictPort: true },
   preview: { host: "0.0.0.0", port: 8080, strictPort: true },
   plugins: [tailwindcss(), viteReact()],

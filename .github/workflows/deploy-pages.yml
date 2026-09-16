@@ -35,3 +35,8 @@ jobs:
           publish_dir: dist
           force_orphan: true
           cname: ${{ vars.CUSTOM_DOMAIN }}
+      - name: Purge China CDN mirrors
+        run: |
+          for f in index.html 404.html; do
+            curl -fsS "https://purge.jsdelivr.net/gh/maydaysuper/wardogs-fdc-web@gh-pages/$f" || true
+          done

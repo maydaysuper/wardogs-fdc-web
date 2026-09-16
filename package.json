@@ -10,7 +10,7 @@
     "dev": "vite --config vite.spa.config.ts",
     "dev:start": "node scripts/with-app-env.mjs vite dev --host 0.0.0.0 --port 8080",
     "build": "vite build --config vite.spa.config.ts && node scripts/prepare-pages.mjs",
-    "build:pages": "GITHUB_PAGES=1 vite build --config vite.spa.config.ts && node scripts/prepare-pages.mjs",
+    "build:pages": "VITE_LOCAL_TILES=1 vite build --config vite.spa.config.ts && node scripts/prepare-pages.mjs",
     "build:china": "VITE_LOCAL_TILES=1 vite build --config vite.spa.config.ts && node scripts/prepare-pages.mjs",
     "build:start": "node scripts/with-app-env.mjs vite build",
     "db:migrate": "node scripts/migrate.mjs",
