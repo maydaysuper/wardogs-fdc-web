@@ -520,7 +520,7 @@ export function TacticalMap({
             aria-expanded={mapMenu}
             aria-haspopup="listbox"
           >
-            {MAPS[mapId].name}
+            {MAPS[mapId].nameZh}
             <ChevronDown className={cn("size-4 text-muted transition-transform duration-(--motion-quick)", mapMenu && "rotate-180")} />
           </button>
           {mapMenu ? (
@@ -537,7 +537,7 @@ export function TacticalMap({
                   }}
                   className={cn("flex h-11 w-full items-center px-3 text-left text-sm", mapId === id ? "bg-accent text-accent-fg" : "text-fg hover:bg-fg/10")}
                 >
-                  {MAPS[id].name}
+                  {MAPS[id].nameZh}
                 </button>
               ))}
             </div>
@@ -555,23 +555,9 @@ export function TacticalMap({
             {zoneCenter ? `${towersInZone.length}塔` : "战区"}
           </button>
         </div>
+        {panel === "fire" ? (
         <div className="pointer-events-auto hidden items-center gap-1 rounded-lg hud-glass p-1 shadow-border desk:flex">
-          {(Object.keys(MAPS) as MapId[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => onMapId(id)}
-              className={cn(
-                "h-9 rounded-md px-2.5 text-xs font-medium",
-                mapId === id ? "bg-accent text-accent-fg" : "text-fg hover:bg-fg/10",
-              )}
-            >
-              {MAPS[id].name}
-            </button>
-          ))}
-        </div>
-        <div className="pointer-events-auto hidden items-center gap-1 rounded-lg hud-glass p-1 shadow-border desk:flex">
-          <span className="px-1.5 text-xs font-medium tracking-wide text-muted">{panel === "haul" ? "卸货塔" : "精确塔位"}</span>
+          <span className="px-1.5 text-xs font-medium tracking-wide text-muted">精确塔位</span>
           {towers.map((tower) => {
             const short = tower.label.replace("塔 ", "T");
             const active = activeTower?.label === tower.label;
@@ -596,37 +582,11 @@ export function TacticalMap({
             );
           })}
         </div>
-        {panel === "haul" ? (
-          <div className="pointer-events-auto hidden items-center gap-1 rounded-lg hud-glass p-1 shadow-border desk:flex">
-            <span className="px-1.5 text-xs font-medium tracking-wide text-muted">我方</span>
-            {getFobMarkers(map).map((mk) => {
-              const faction = FACTIONS[mk.kind as FobId];
-              const activeOrigin = gun && distanceMeters(gun, mk.pos) <= 80;
-              return (
-                <button
-                  key={mk.kind}
-                  type="button"
-                  title={`${faction.nameZh} ${faction.nameEn} · 设为我方出生点`}
-                  onClick={() => {
-                    onPlace(mk.pos, "gun");
-                    setCam(focusView(mk.pos, 14, MAP_SIZE_UNITS, cssSize()));
-                  }}
-                  className={cn(
-                    "inline-flex h-10 items-center gap-1.5 rounded-md px-3 text-sm font-semibold",
-                    activeOrigin ? faction.chipOn : faction.chipOff,
-                  )}
-                >
-                  <GameIcon name={mk.kind} className="size-5" />
-                  {faction.nameZh}
-                </button>
-              );
-            })}
-          </div>
         ) : null}
         <button
           type="button"
           className={cn(
-            "pointer-events-auto hidden h-11 items-center gap-2 rounded-lg hud-glass px-3 text-xs shadow-border desk:inline-flex",
+            "pointer-events-auto hidden h-9 max-w-52 items-center gap-2 rounded-lg hud-glass px-2.5 text-xs shadow-border desk:inline-flex",
             zoneCenter ? "text-zone" : "text-muted",
           )}
           onClick={() => {

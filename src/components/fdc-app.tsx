@@ -260,7 +260,7 @@ export function FdcApp() {
         <div className="pointer-events-auto flex items-center gap-1 rounded-lg hud-glass px-1 py-1 shadow-border desk:gap-2 desk:px-2 desk:py-1.5">
           <Crosshair className="ml-1 hidden size-4 text-accent desk:block" strokeWidth={1.75} />
           <h1 className="hidden text-sm font-semibold tracking-tight desk:block">WARDOGS 诸元</h1>
-          <span className="hidden font-mono text-[10px] text-subtle desk:inline">0916c</span>
+          <span className="hidden font-mono text-[10px] text-subtle desk:inline">0916d</span>
           <div className="grid grid-cols-2 gap-1 rounded-md bg-hud-2 p-0.5">
             <button
               type="button"
@@ -276,6 +276,21 @@ export function FdcApp() {
             >
               运输
             </button>
+          </div>
+          <div className="hidden items-center gap-0.5 rounded-md bg-hud-2 p-0.5 desk:flex">
+            {(Object.keys(MAPS) as Array<keyof typeof MAPS>).map((id) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => s.setMapId(id)}
+                className={cn(
+                  "h-8 rounded-sm px-2.5 text-xs font-medium",
+                  s.mapId === id ? "bg-accent text-accent-fg" : "text-fg hover:bg-fg/10",
+                )}
+              >
+                {MAPS[id].nameZh}
+              </button>
+            ))}
           </div>
         </div>
       </header>
