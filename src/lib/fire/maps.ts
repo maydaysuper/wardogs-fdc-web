@@ -210,6 +210,8 @@ export const MAPS: Record<MapId, GameMap> = {
  * Source: wardogs-calculator maps/*.json (metres / 100), checked on z6 tiles 2026-09-15.
  * Bakurani/Ozeti/Zestafona: T1–T5 / T1–T4 / T1–T3. Inactive map-file names (向日葵, 塔 7, abandoned) are not capturable pins.
  */
+export const MAP_IDS: MapId[] = ["bakurani", "ozeti", "zestafona"];
+
 export const TOWER_CALIBRATION_VERIFIED_AT = "2026-09-15";
 /** Compound radius drawn around each pin. */
 export const TOWER_RADIUS_M = 45;
