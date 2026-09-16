@@ -38,6 +38,7 @@ import { WEAPONS, type WeaponId } from "@/lib/fire/tables";
 import { FACTIONS, type FobId } from "@/lib/haul/factions";
 import { towerCluster } from "@/lib/haul/routes";
 import { GameIcon } from "@/components/game-icon";
+import { assetUrl } from "@/lib/asset";
 import { cn } from "@/lib/utils";
 
 interface TacticalMapProps {
@@ -712,7 +713,7 @@ export function TacticalMap({
         className="absolute inset-0 cursor-crosshair touch-none overflow-hidden overscroll-none outline-none"
         style={{
           backgroundColor: "var(--color-earth)",
-          backgroundImage: `url(/maps/${mapId}.webp)`,
+          backgroundImage: `url(${assetUrl(`maps/${mapId}.webp`)})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
