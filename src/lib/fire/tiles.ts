@@ -6,6 +6,7 @@ export const TILE_PX = 256;
 export const LOCAL_MAX_ZOOM = 3;
 const CACHE_LIMIT = 180;
 const MAX_INFLIGHT = 6;
+const LOCAL_ONLY = import.meta.env.VITE_LOCAL_TILES === "1";
 
 type Status = "loading" | "ok" | "fail";
 export interface TileRec {
@@ -45,7 +46,7 @@ export function tileKey(mapId: string, z: number, tx: number, ty: number): strin
 }
 
 export function tileUrl(map: GameMap, z: number, tx: number, ty: number): string {
-  if (z <= LOCAL_MAX_ZOOM) return assetUrl(`maps/${map.id}/zoom_${z}/${tx}_${ty}.webp`);
+  if (LOCAL_ONLY || z <= LOCAL_MAX_ZOOM) return assetUrl(`maps/${map.id}/zoom_${z}/${tx}_${ty}.webp`);
   return `${map.tiles}/zoom_${z}/${tx}_${ty}.webp`;
 }
 
@@ -235,7 +236,7 @@ export function pickTileZoom(viewS: number, cssPx: number, maxZoom: number): num
   const base = TILE_PX / worldW;
   const desired = cssPx / viewS;
   const raw = Math.log2(desired / base);
-  const cap = cssPx < 640 ? Math.min(maxZoom, LOCAL_MAX_ZOOM) : maxZoom;
+  const cap = LOCAL_ONLY || cssPx < 640 ? Math.min(maxZoom, LOCAL_MAX_ZOOM) : maxZoom;
   let z = Math.min(cap, Math.max(0, Math.round(raw)));
   if (Math.abs(raw - lastZoom) < 0.35 && lastZoom <= cap) z = lastZoom;
   lastZoom = z;

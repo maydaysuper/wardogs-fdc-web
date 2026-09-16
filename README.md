@@ -4,7 +4,8 @@
 
 ## 在线版
 
-https://maydaysuper.github.io/wardogs-fdc-web/
+- 海外：https://maydaysuper.github.io/wardogs-fdc-web/
+- 国内直连：把静态站放到阿里云 OSS 或腾讯云 COS。操作清单见 [国内部署.md](./国内部署.md)
 
 ## 自定义域名
 
@@ -13,4 +14,4 @@ https://maydaysuper.github.io/wardogs-fdc-web/
 3. Settings → Pages → Custom domain 填同一个域名并等 HTTPS
 4. 再 push 或手动跑一次 Deploy GitHub Pages
 
-没有域名时站点仍是 github.io 路径。
+没有域名时站点仍是 github.io 路径。大陆朋友请走 OSS/COS，不要发 github.io。
