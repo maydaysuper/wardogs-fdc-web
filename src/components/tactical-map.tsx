@@ -786,7 +786,7 @@ export function TacticalMap({
         <canvas ref={canvasRef} className="absolute inset-0 size-full bg-transparent" />
         <canvas
           ref={miniRef}
-          className="absolute z-10 hidden cursor-pointer rounded-sm shadow-border desk:right-3 desk:bottom-28 desk:block"
+          className="mini-dock absolute z-10 hidden cursor-pointer rounded-sm shadow-border desk:right-3 desk:block"
           width={112}
           height={112}
           onPointerDown={(e) => e.stopPropagation()}
@@ -798,7 +798,7 @@ export function TacticalMap({
             setCam(centerView({ x: nx, y: ny }, cam.current.s, MAP_SIZE_UNITS, cssSize()));
           }}
         />
-        <div className="pointer-events-none absolute bottom-2 left-2 hidden font-mono text-xs text-fg desk:right-32 desk:bottom-28 desk:left-3 desk:flex desk:items-end desk:justify-between desk:gap-2">
+        <div className="pointer-events-none absolute bottom-2 left-2 hidden font-mono text-xs text-fg desk:right-32 desk:left-3 desk:flex desk:items-end desk:justify-between desk:gap-2 mini-dock">
           <span className="rounded-sm bg-hud px-2 py-1 shadow-border">
             {panel === "haul"
               ? `${placeMode === "gun" ? "点选出发" : placeMode === "zone" ? "点选战区卸货" : "点选卸货"} · ${map.nameZh} · `

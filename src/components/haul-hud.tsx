@@ -19,7 +19,7 @@ import {
   type TripBreakdown,
 } from "@/lib/haul/economy";
 import { FRONT_FOB_ID, getFobStops, getFrontStop, getTowerStops, rankRoutes, type HaulStop } from "@/lib/haul/routes";
-import { loadFor, modeLabel, optimizeHaul, pickBestHaul, pickBestRate, planKey, planMatches, uniquePlans } from "@/lib/haul/optimize";
+import { loadFor, modeLabel, optimizeHaul, pickBestHaul, planKey, planMatches, uniquePlans } from "@/lib/haul/optimize";
 import { MAPS, type MapId } from "@/lib/fire/maps";
 import type { Vec } from "@/lib/fire/coords";
 import { cn } from "@/lib/utils";
@@ -50,11 +50,11 @@ function Stepper({
   min?: number;
 }) {
   return (
-    <div className="flex items-center gap-1 rounded-lg bg-hud-2 p-1">
+    <div className="flex items-center gap-1 rounded-lg bg-hud-2 p-0.5 desk:p-0.5">
       <span className="px-1.5 text-xs text-muted">{label}</span>
       <button
         type="button"
-        className="inline-flex size-9 items-center justify-center rounded-md hover:bg-fg/10 disabled:opacity-40"
+        className="inline-flex size-9 items-center justify-center rounded-md hover:bg-fg/10 disabled:opacity-40 desk:size-7"
         onClick={() => onChange(value - 1)}
         disabled={value <= min}
         aria-label={`减少${label}`}
@@ -64,7 +64,7 @@ function Stepper({
       <span className="w-6 text-center font-mono text-sm tabular-nums">{value}</span>
       <button
         type="button"
-        className="inline-flex size-9 items-center justify-center rounded-md hover:bg-fg/10 disabled:opacity-40"
+        className="inline-flex size-9 items-center justify-center rounded-md hover:bg-fg/10 disabled:opacity-40 desk:size-7"
         onClick={() => onChange(value + 1)}
         disabled={value >= max}
         aria-label={`增加${label}`}
@@ -80,7 +80,7 @@ function Toggle({ on, onClick, children }: { on: boolean; onClick: () => void; c
     <button
       type="button"
       onClick={onClick}
-      className={cn("h-9 rounded-md px-2.5 text-xs font-medium", on ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
+      className={cn("h-9 rounded-md px-2.5 text-xs font-medium desk:h-8", on ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
     >
       {children}
     </button>
@@ -94,9 +94,9 @@ function FactionChip({ id, on, onClick }: { id: FobId; on: boolean; onClick: () 
       type="button"
       title={`${faction.nameZh} ${faction.nameEn}`}
       onClick={onClick}
-      className={cn("inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-semibold", on ? faction.chipOn : faction.chipOff)}
+      className={cn("inline-flex h-11 min-w-16 items-center justify-center gap-1.5 rounded-md px-3 text-sm font-semibold desk:h-8 desk:min-w-0 desk:px-2 desk:text-xs", on ? faction.chipOn : faction.chipOff)}
     >
-      <GameIcon name={id} className="size-5" />
+      <GameIcon name={id} className="size-5 desk:size-3.5" />
       {faction.nameZh}
     </button>
   );
@@ -250,9 +250,7 @@ export function HaulHud({
     [origin, map, originId, trips, ownedVehicle, vehicle.id, unloadAtFob, expectSurvive, expectKills, zoneCenter],
   );
   const bestPlan = pickBestHaul(plans);
-  const bestRate = pickBestRate(plans);
   const haulPool = plans.filter((plan) => plan.trip.palletsLoaded > 0);
-  const rateIsDifferent = Boolean(bestPlan && bestRate && planKey(bestPlan) !== planKey(bestRate));
   const alreadyBest = Boolean(bestPlan && planMatches(bestPlan, vehicle.id, destId, roundTrip, pallets, passengers));
   const applyPlan = (plan: NonNullable<typeof bestPlan>) => {
     const load = loadFor(plan.vehicle, plan.mode);
@@ -294,104 +292,11 @@ export function HaulHud({
   };
 
   return (
-    <div className={cn("flex flex-col gap-2", open && "fdc-sheet-open")}>
+    <div className="flex flex-col gap-1.5">
       {sheet === "vehicle" ? <VehiclePicker selectedId={vehicleId} onSelect={onVehicleId} onClose={() => setSheet(null)} /> : null}
       {sheet === "cargo" ? <CargoPicker vehicleId={vehicleId} cargoIds={cargoIds} onChange={onCargoIds} onClose={() => setSheet(null)} /> : null}
 
-      {open ? (
-        <div className="hidden gap-2 desk:grid md:grid-cols-3">
-          <div className="rounded-xl hud-glass p-3 shadow-border">
-            <p className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">地图航线 · 当前车货</p>
-            <ul className="flex flex-col gap-1">
-              {mapRoutes.map((row) => (
-                <li key={row.stop.id}>
-                  <button
-                    type="button"
-                    onClick={() => onPickDest(row.stop)}
-                    className={cn(
-                      "flex w-full items-baseline justify-between rounded-md px-2 py-1.5 text-left hover:bg-fg/10",
-                      row.stop.id === destId ? "bg-hud-2" : "",
-                    )}
-                  >
-                    <span className="text-sm">
-                      {row.stop.short}
-                      <span className="ml-1 text-xs text-muted">
-                        {row.distanceKm.toFixed(1)} km · {destLabel(row.stop.destKind)}
-                      </span>
-                    </span>
-                    <span className={cn("font-mono text-sm tabular-nums", row.session.sessionNet >= 0 ? "text-ok" : "text-danger")}>
-                      {money(row.session.sessionNet)}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-2 text-xs leading-snug text-subtle">按真实距离连跑 {trips} 趟。FOB 卸进库通常压过送塔。</p>
-          </div>
-          <div className="rounded-xl hud-glass p-3 shadow-border">
-            <p className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">卸货方式 · 同路同距</p>
-            <ul className="flex flex-col gap-1">
-              {dests.map((row) => (
-                <li key={row.destKind}>
-                  <button
-                    type="button"
-                    onClick={() => onDestKind(row.destKind)}
-                    className={cn("flex w-full items-baseline justify-between rounded-md px-2 py-1.5 text-left hover:bg-fg/10", row.destKind === destKind ? "bg-hud-2" : "")}
-                  >
-                    <span className="text-sm">
-                      {destLabel(row.destKind)}
-                      {row.destKind === dests[0].destKind ? <span className="ml-2 text-xs text-ok">最优</span> : null}
-                    </span>
-                    <span className={cn("font-mono text-sm tabular-nums", row.net >= 0 ? "text-ok" : "text-danger")}>{money(row.net)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-3 flex flex-wrap gap-1">
-              <Toggle on={unloadAtFob} onClick={() => onUnloadAtFob(!unloadAtFob)}>
-                FOB卸进库
-              </Toggle>
-              <Toggle on={expectSurvive} onClick={() => onExpectSurvive(!expectSurvive)}>
-                乘客存活
-              </Toggle>
-              <Stepper label="击杀奖" value={expectKills} onChange={onExpectKills} max={12} />
-            </div>
-            <p className="mt-2 text-xs leading-snug text-subtle">野外倒货 $0。战区投放 $2,500。FOB 再卸进库 +$1,800。托盘买价 $400。</p>
-          </div>
-          <div className="rounded-xl hud-glass p-3 shadow-border">
-            <p className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">联合搜索 · 车×路×编制</p>
-            <ul className="flex flex-col gap-1">
-              {uniquePlans(haulPool, 5).map((plan, i) => (
-                <li key={planKey(plan)}>
-                  <button
-                    type="button"
-                    onClick={() => applyPlan(plan)}
-                    className={cn("flex w-full items-baseline justify-between rounded-md px-2 py-1.5 text-left hover:bg-fg/10", planKey(plan) === (bestPlan ? planKey(bestPlan) : "") ? "bg-hud-2" : "")}
-                  >
-                    <span className="min-w-0 truncate text-sm">
-                      {i + 1}. {plan.vehicle.nameZh} · {plan.stop.short} · {modeLabel(plan.mode)}
-                      <span className="ml-1 text-xs text-muted">{plan.roundTrip ? "往返" : "单程"}</span>
-                    </span>
-                    <span className={cn("shrink-0 font-mono text-sm tabular-nums", plan.session.sessionNet >= 0 ? "text-ok" : "text-danger")}>{money(plan.session.sessionNet)}</span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {rateIsDifferent && bestRate ? (
-              <button type="button" onClick={() => applyPlan(bestRate)} className="mt-2 flex w-full items-baseline justify-between rounded-md px-2 py-1.5 text-left hover:bg-fg/10">
-                <span className="text-sm">
-                  最快每分 {bestRate.vehicle.nameZh} · {bestRate.stop.short}
-                  <span className="ml-1 text-xs text-muted">{modeLabel(bestRate.mode)}</span>
-                </span>
-                <span className="font-mono text-sm tabular-nums text-ok">{bestRate.session.sessionPerMin.toFixed(0)}/分</span>
-              </button>
-            ) : null}
-            <p className="mt-2 text-xs leading-snug text-subtle">运货最优只看带托盘的方案。满座载人单独标最快。</p>
-          </div>
-        </div>
-      ) : null}
-
-      <div className="flex flex-col gap-2 rounded-xl hud-glass px-2.5 pt-1.5 pb-2 shadow-border desk:gap-2 desk:p-2">
+      <div className="flex flex-col rounded-xl hud-glass px-2 pt-1 pb-1.5 shadow-border desk:px-2 desk:py-1.5">
         <div className="flex w-full flex-col desk:hidden">
           <button type="button" className="flex w-full flex-col" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
             <span className="hud-handle" />
@@ -456,181 +361,222 @@ export function HaulHud({
           )}
         </div>
 
-        <div className={cn("flex flex-col gap-3", !open && "compact:hidden")}>
-          <div className="hud-section">
-            <p className="hud-section-label desk:hidden">我方出生</p>
-            <div className="chip-scroll desk:flex-wrap">
-              <button
-                type="button"
-                title="点选出发"
-                onClick={() => onPlaceMode("gun")}
-                className={cn("inline-flex size-11 items-center justify-center rounded-md", placeMode === "gun" ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
-              >
-                <GameIcon name="spawn_vehicle" className="size-5" />
-              </button>
-              <span className="hidden px-1 text-xs font-medium tracking-wide text-muted desk:inline">我方</span>
-              {fobs.map((stop) =>
-                stop.fobId ? <FactionChip key={stop.id} id={stop.fobId} on={originId === stop.id} onClick={() => onPickOrigin(stop)} /> : null,
-              )}
-            </div>
-          </div>
-
-          <div className="hud-section">
-            <p className="hud-section-label desk:hidden">卸货点</p>
-            <div className="chip-scroll desk:flex-wrap">
-              <button
-                type="button"
-                title="点选卸货"
-                onClick={() => onPlaceMode("target")}
-                className={cn("inline-flex size-11 items-center justify-center rounded-md", placeMode === "target" ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
-              >
-                <GameIcon name="fob" className="size-5" />
-              </button>
-              <span className="hidden px-1 text-xs font-medium tracking-wide text-muted desk:inline">卸货</span>
-              <button
-                type="button"
-                title="己方前线 FOB · 投放 + 卸进库"
-                onClick={() => onPickDest(front)}
-                className={cn(
-                  "inline-flex h-11 items-center gap-1.5 rounded-md px-2.5 text-sm font-semibold",
-                  destId === FRONT_FOB_ID ? "bg-ok text-bg" : "bg-hud-2 text-fg hover:bg-fg/10",
-                )}
-              >
-                <GameIcon name="fob" className="size-5" />
-                前线FOB
-              </button>
-              {towers.map((stop) => (
-                <button
-                  key={stop.id}
-                  type="button"
-                  title={`${stop.label} · 战区投放`}
-                  onClick={() => onPickDest(stop)}
-                  className={cn("inline-flex h-11 items-center gap-1 rounded-md px-2.5 text-sm font-medium", destId === stop.id ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
-                >
-                  <GameIcon name="tower" className="size-4" />
-                  {stop.short}
-                </button>
-              ))}
-              <button
-                type="button"
-                title="点选战区"
-                onClick={() => onPlaceMode("zone")}
-                className={cn("inline-flex size-11 items-center justify-center rounded-md", placeMode === "zone" ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
-              >
-                <SquareDashed className="size-4" />
-              </button>
-              <button type="button" className="h-11 rounded-md px-2.5 text-xs text-muted hover:bg-fg/10 hover:text-fg" onClick={onResetRoute}>
-                回前线
-              </button>
-              {ready ? <span className="ml-auto hidden font-mono text-xs tabular-nums text-subtle desk:inline">{distanceKm.toFixed(1)} km</span> : null}
-            </div>
-          </div>
-
-          <div className="hud-section">
-            <p className="hud-section-label desk:hidden">载具与货物</p>
-            <div className="grid grid-cols-2 gap-1.5 desk:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
-              <button
-                type="button"
-                onClick={() => setSheet("vehicle")}
-                className="flex h-12 min-w-0 items-center gap-2 rounded-lg bg-hud-2 px-2 text-left hover:bg-fg/10 desk:h-14"
-              >
-                <VehicleGlyph id={vehicle.id} className="h-10 w-16 shrink-0 desk:h-12 desk:w-20" />
-                <span className="min-w-0">
-                  <span className="block truncate font-mono text-xs tracking-wide text-muted">{NAME_EN[vehicle.id]}</span>
-                  <span className="block truncate text-sm font-medium">{vehicle.nameZh}</span>
-                </span>
-                <span className="ml-auto hidden shrink-0 font-mono text-sm tabular-nums text-ok sm:inline">{money(vehicle.price)}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSheet("cargo")}
-                className="flex h-12 min-w-0 items-center gap-2 rounded-lg bg-hud-2 px-2 text-left hover:bg-fg/10 desk:h-14 desk:px-3"
-              >
-                <span className="flex shrink-0 items-center">
-                  {bedItems.length ? (
-                    bedItems.slice(0, 3).map((item, i) => (item ? <CargoGlyph key={`${item.id}-${i}`} item={item} className="-ml-1 h-8 w-9 first:ml-0" /> : null))
-                  ) : (
-                    <span className="text-xs text-subtle">空斗</span>
-                  )}
-                </span>
-                <span className="min-w-0">
-                  <span className="hidden font-mono text-xs tracking-wide text-muted uppercase desk:block">Logistics</span>
-                  <span className="block truncate text-sm font-medium">{cargoLabel(cargoIds)}</span>
-                </span>
-                <span className="ml-auto hidden shrink-0 text-xs text-subtle desk:inline">
-                  {bed.palletSlots ? `${bed.w}×${bed.h}` : bed.crateSlots ? `${bed.crateSlots}箱位` : "无斗"}
-                </span>
-              </button>
-              <div className="col-span-2 flex flex-wrap items-center gap-1.5 desk:col-span-1">
-                {(["fob", "zone", "field"] as const).map((kind) => (
-                  <button
-                    key={kind}
-                    type="button"
-                    onClick={() => onDestKind(kind)}
-                    className={cn("h-11 rounded-md px-3 text-sm font-medium", destKind === kind ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
-                  >
-                    {destLabel(kind)}
-                  </button>
-                ))}
-                <Stepper label="乘客" value={passengers} onChange={onPassengers} max={vehicle.passengers} />
-                <Stepper label="连跑" value={trips} onChange={onTrips} min={1} max={8} />
-                <Toggle on={roundTrip} onClick={() => onRoundTrip(!roundTrip)}>
-                  往返
-                </Toggle>
-                <Toggle on={ownedVehicle} onClick={() => onOwnedVehicle(!ownedVehicle)}>
-                  车已买
-                </Toggle>
-              </div>
-            </div>
-          </div>
-
+        <div className="hidden min-h-10 items-center gap-2 desk:flex">
+          <button
+            type="button"
+            title="切换我方"
+            onClick={cycleOrigin}
+            className={cn(
+              "inline-flex h-8 shrink-0 items-center gap-1 rounded-md px-2 text-xs font-semibold",
+              originFaction ? originFaction.chipOn : "bg-hud-2",
+            )}
+          >
+            {originFaction ? <GameIcon name={originFaction.id} className="size-3.5" /> : null}
+            {originName}
+          </button>
+          <span className="text-subtle">→</span>
+          <span className="max-w-28 truncate text-sm font-medium">{destName}</span>
+          {ready ? <span className="font-mono text-xs tabular-nums text-subtle">{distanceKm.toFixed(1)} km</span> : null}
+          <button type="button" onClick={() => setSheet("vehicle")} className="flex h-8 min-w-0 items-center gap-1.5 rounded-md bg-hud-2 px-1.5">
+            <VehicleGlyph id={vehicle.id} className="h-7 w-11 shrink-0" />
+            <span className="max-w-20 truncate text-xs font-medium">{vehicle.nameZh}</span>
+          </button>
+          <button type="button" onClick={() => setSheet("cargo")} className="flex h-8 min-w-0 items-center gap-1 rounded-md bg-hud-2 px-1.5">
+            {bedItems.length ? (
+              bedItems.slice(0, 2).map((item, i) => (item ? <CargoGlyph key={`${item.id}-${i}`} item={item} className="-ml-1 h-6 w-6 first:ml-0" /> : null))
+            ) : (
+              <span className="text-xs text-subtle">空斗</span>
+            )}
+            <span className="max-w-28 truncate text-xs font-medium">{cargoLabel(cargoIds)}</span>
+          </button>
+          <span className={cn("ml-auto shrink-0 font-mono text-xl leading-none font-medium tabular-nums", !ready ? "text-muted" : trip.net >= 0 ? "text-ok" : "text-danger")}>
+            {ready ? money(trip.net) : "—"}
+            <span className="ml-1 text-xs font-normal text-muted">本趟</span>
+          </span>
+          {ready ? (
+            <span className={cn("hidden shrink-0 font-mono text-sm tabular-nums lg:inline", session.sessionNet >= 0 ? "text-ok" : "text-danger")}>
+              {money(session.sessionNet)}
+              <span className="ml-1 text-xs text-muted">{trips}趟</span>
+            </span>
+          ) : null}
           {bestPlan ? (
             <button
               type="button"
               onClick={() => applyPlan(bestPlan)}
-              className={cn(
-                "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-left",
-                alreadyBest ? "bg-hud-2" : "bg-ok/15 hover:bg-ok/25",
-              )}
+              className={cn("inline-flex h-8 items-center rounded-md px-2.5 text-xs font-semibold", alreadyBest ? "bg-hud-2 text-muted" : "bg-ok text-bg")}
             >
-              <span className="flex min-w-0 items-center gap-3">
-                <VehicleGlyph id={bestPlan.vehicle.id} className="hidden h-12 w-20 shrink-0 desk:block" />
-                <span className="min-w-0">
-                  <span className="block text-xs font-medium tracking-wide text-muted uppercase">
-                    {alreadyBest ? "已是最优" : "一键最优"} · {originName} → {bestPlan.stop.short}
-                  </span>
-                  <span className="block truncate text-sm font-medium">
-                    {bestPlan.vehicle.nameZh} · {bestPlan.roundTrip ? "往返" : "单程"} · {modeLabel(bestPlan.mode)} · {bestPlan.trip.palletsLoaded}托
-                    {bestPlan.trip.passengersLoaded ? ` ${bestPlan.trip.passengersLoaded}人` : ""}
-                  </span>
-                </span>
-              </span>
-              <span className="shrink-0 text-right">
-                <span className={cn("block font-mono text-lg tabular-nums desk:text-xl", bestPlan.session.sessionNet >= 0 ? "text-ok" : "text-danger")}>
-                  {money(bestPlan.session.sessionNet)}
-                </span>
-                <span className="block font-mono text-xs tabular-nums text-muted">
-                  {trips}趟 · {bestPlan.session.sessionPerMin.toFixed(0)}/分
-                </span>
-              </span>
+              {alreadyBest ? "已最优" : "最优"}
             </button>
           ) : null}
+          <Button size="sm" disabled={!ready} onClick={() => onCopy(chat)} className="h-8 px-2">
+            <Copy />
+            <span className="hidden xl:inline">复制</span>
+          </Button>
+          <Button size="sm" variant="secondary" className="h-8 bg-hud-2 px-2" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+            <ChevronUp className={cn("size-4 transition-transform duration-(--motion-quick)", open ? "rotate-180" : "")} />
+            {open ? "收起" : "更多"}
+          </Button>
+        </div>
 
-          <div className="flex items-center gap-2">
-            <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
-              <p className={cn("font-mono text-2xl leading-none font-medium tracking-tight tabular-nums desk:text-4xl", !ready ? "text-muted" : trip.net >= 0 ? "text-ok" : "text-danger")}>
-                {ready ? money(trip.net) : "—"}
-                <span className="ml-1 text-xs font-normal text-muted desk:text-sm">本趟</span>
-              </p>
-              {ready ? (
-                <>
-                  <p className={cn("font-mono text-lg tabular-nums desk:text-2xl", session.sessionNet >= 0 ? "text-ok" : "text-danger")}>
-                    {money(session.sessionNet)}
-                    <span className="ml-1 text-xs font-normal text-muted">{trips}趟</span>
-                  </p>
-                  <span className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                    <p className="font-mono text-sm tabular-nums text-muted">之后每趟 {money(session.rest.net)}</p>
-                    <p className="font-mono text-sm tabular-nums text-muted">{trip.minutes.toFixed(1)} 分</p>
+        {open ? (
+          <div className="haul-sheet">
+            <div className="hud-section">
+              <p className="hud-section-label desk:hidden">我方出生</p>
+              <div className="chip-scroll desk:flex-wrap">
+                <button
+                  type="button"
+                  title="点选出发"
+                  onClick={() => onPlaceMode("gun")}
+                  className={cn("inline-flex size-11 items-center justify-center rounded-md desk:size-8", placeMode === "gun" ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
+                >
+                  <GameIcon name="spawn_vehicle" className="size-5 desk:size-4" />
+                </button>
+                <span className="hidden px-1 text-xs font-medium tracking-wide text-muted desk:inline">我方</span>
+                {fobs.map((stop) =>
+                  stop.fobId ? <FactionChip key={stop.id} id={stop.fobId} on={originId === stop.id} onClick={() => onPickOrigin(stop)} /> : null,
+                )}
+              </div>
+            </div>
+
+            <div className="hud-section">
+              <p className="hud-section-label desk:hidden">卸货点</p>
+              <div className="chip-scroll desk:flex-wrap">
+                <button
+                  type="button"
+                  title="点选卸货"
+                  onClick={() => onPlaceMode("target")}
+                  className={cn("inline-flex size-11 items-center justify-center rounded-md desk:size-8", placeMode === "target" ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
+                >
+                  <GameIcon name="fob" className="size-5 desk:size-4" />
+                </button>
+                <span className="hidden px-1 text-xs font-medium tracking-wide text-muted desk:inline">卸货</span>
+                <button
+                  type="button"
+                  title="己方前线 FOB · 投放 + 卸进库"
+                  onClick={() => onPickDest(front)}
+                  className={cn(
+                    "inline-flex h-11 items-center gap-1.5 rounded-md px-2.5 text-sm font-semibold desk:h-8 desk:px-2 desk:text-xs",
+                    destId === FRONT_FOB_ID ? "bg-ok text-bg" : "bg-hud-2 text-fg hover:bg-fg/10",
+                  )}
+                >
+                  <GameIcon name="fob" className="size-5 desk:size-4" />
+                  前线FOB
+                </button>
+                {towers.map((stop) => (
+                  <button
+                    key={stop.id}
+                    type="button"
+                    title={`${stop.label} · 战区投放`}
+                    onClick={() => onPickDest(stop)}
+                    className={cn("inline-flex h-11 items-center gap-1 rounded-md px-2.5 text-sm font-medium desk:h-8 desk:px-2 desk:text-xs", destId === stop.id ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
+                  >
+                    <GameIcon name="tower" className="size-4" />
+                    {stop.short}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  title="点选战区"
+                  onClick={() => onPlaceMode("zone")}
+                  className={cn("inline-flex size-11 items-center justify-center rounded-md desk:size-8", placeMode === "zone" ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
+                >
+                  <SquareDashed className="size-4" />
+                </button>
+                <button type="button" className="h-11 rounded-md px-2.5 text-xs text-muted hover:bg-fg/10 hover:text-fg desk:h-8" onClick={onResetRoute}>
+                  回前线
+                </button>
+              </div>
+            </div>
+
+            <div className="hud-section">
+              <p className="hud-section-label desk:hidden">载具与货物</p>
+              <div className="grid grid-cols-2 gap-1.5 desk:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]">
+                <button
+                  type="button"
+                  onClick={() => setSheet("vehicle")}
+                  className="flex h-12 min-w-0 items-center gap-2 rounded-lg bg-hud-2 px-2 text-left hover:bg-fg/10 desk:h-10"
+                >
+                  <VehicleGlyph id={vehicle.id} className="h-10 w-16 shrink-0 desk:h-8 desk:w-14" />
+                  <span className="min-w-0">
+                    <span className="block truncate font-mono text-xs tracking-wide text-muted">{NAME_EN[vehicle.id]}</span>
+                    <span className="block truncate text-sm font-medium">{vehicle.nameZh}</span>
+                  </span>
+                  <span className="ml-auto hidden shrink-0 font-mono text-sm tabular-nums text-ok sm:inline">{money(vehicle.price)}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSheet("cargo")}
+                  className="flex h-12 min-w-0 items-center gap-2 rounded-lg bg-hud-2 px-2 text-left hover:bg-fg/10 desk:h-10 desk:px-3"
+                >
+                  <span className="flex shrink-0 items-center">
+                    {bedItems.length ? (
+                      bedItems.slice(0, 3).map((item, i) => (item ? <CargoGlyph key={`${item.id}-${i}`} item={item} className="-ml-1 h-8 w-9 first:ml-0" /> : null))
+                    ) : (
+                      <span className="text-xs text-subtle">空斗</span>
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="hidden font-mono text-xs tracking-wide text-muted uppercase desk:block">Logistics</span>
+                    <span className="block truncate text-sm font-medium">{cargoLabel(cargoIds)}</span>
+                  </span>
+                  <span className="ml-auto hidden shrink-0 text-xs text-subtle desk:inline">
+                    {bed.palletSlots ? `${bed.w}×${bed.h}` : bed.crateSlots ? `${bed.crateSlots}箱位` : "无斗"}
+                  </span>
+                </button>
+                <div className="col-span-2 flex flex-wrap items-center gap-1.5 desk:col-span-1">
+                  {(["fob", "zone", "field"] as const).map((kind) => (
+                    <button
+                      key={kind}
+                      type="button"
+                      onClick={() => onDestKind(kind)}
+                      className={cn("h-11 rounded-md px-3 text-sm font-medium desk:h-8 desk:px-2 desk:text-xs", destKind === kind ? "bg-accent text-accent-fg" : "bg-hud-2 text-fg hover:bg-fg/10")}
+                    >
+                      {destLabel(kind)}
+                    </button>
+                  ))}
+                  <Stepper label="乘客" value={passengers} onChange={onPassengers} max={vehicle.passengers} />
+                  <Stepper label="连跑" value={trips} onChange={onTrips} min={1} max={8} />
+                  <Toggle on={roundTrip} onClick={() => onRoundTrip(!roundTrip)}>
+                    往返
+                  </Toggle>
+                  <Toggle on={ownedVehicle} onClick={() => onOwnedVehicle(!ownedVehicle)}>
+                    车已买
+                  </Toggle>
+                </div>
+              </div>
+            </div>
+
+            {bestPlan ? (
+              <button
+                type="button"
+                onClick={() => applyPlan(bestPlan)}
+                className={cn(
+                  "flex w-full items-center justify-between gap-3 rounded-lg px-3 py-2 text-left",
+                  alreadyBest ? "bg-hud-2" : "bg-ok/15 hover:bg-ok/25",
+                )}
+              >
+                <span className="min-w-0 truncate text-sm font-medium">
+                  {alreadyBest ? "已是最优" : "一键最优"} · {originName} → {bestPlan.stop.short} · {bestPlan.vehicle.nameZh} · {modeLabel(bestPlan.mode)}
+                </span>
+                <span className={cn("shrink-0 font-mono text-sm tabular-nums", bestPlan.session.sessionNet >= 0 ? "text-ok" : "text-danger")}>
+                  {money(bestPlan.session.sessionNet)}
+                </span>
+              </button>
+            ) : null}
+
+            <div className="flex items-center gap-2">
+              <div className="flex min-w-0 flex-1 flex-wrap items-baseline gap-x-3 gap-y-1 px-1">
+                <p className={cn("font-mono text-xl leading-none font-medium tracking-tight tabular-nums desk:text-2xl", !ready ? "text-muted" : trip.net >= 0 ? "text-ok" : "text-danger")}>
+                  {ready ? money(trip.net) : "—"}
+                  <span className="ml-1 text-xs font-normal text-muted">本趟</span>
+                </p>
+                {ready ? (
+                  <>
+                    <p className={cn("font-mono text-sm tabular-nums", session.sessionNet >= 0 ? "text-ok" : "text-danger")}>
+                      {money(session.sessionNet)}
+                      <span className="ml-1 text-xs font-normal text-muted">{trips}趟</span>
+                    </p>
+                    <p className="font-mono text-xs tabular-nums text-muted">之后每趟 {money(session.rest.net)} · {trip.minutes.toFixed(1)} 分</p>
                     {trip.overRange ? <Badge variant="warn">超航程 加油 {trip.refuelStops} 次</Badge> : null}
                     {trip.breakEvenTrips ? <Badge variant={trip.net >= 0 ? "ok" : "warn"}>回本 {trip.breakEvenTrips} 趟</Badge> : <Badge variant="danger">回不了本</Badge>}
                     {showDestKindSwap ? (
@@ -648,39 +594,27 @@ export function HaulHud({
                         这趟改用 {bestLoadName} {money(bestLoad.sessionNet)}
                       </button>
                     ) : null}
-                  </span>
-                </>
-              ) : (
-                <p className="text-sm text-subtle">红蓝绿是出生点，卸货默认前线 FOB。</p>
-              )}
-            </div>
-            <div className="flex shrink-0 gap-1">
-              <Button size="sm" disabled={!ready} onClick={() => onCopy(chat)} className="compact:px-2">
+                  </>
+                ) : (
+                  <p className="text-sm text-subtle">红蓝绿是出生点，卸货默认前线 FOB。</p>
+                )}
+              </div>
+              <Button size="sm" disabled={!ready} onClick={() => onCopy(chat)} className="desk:hidden">
                 <Copy />
-                <span className="hidden sm:inline desk:inline">复制账本</span>
-              </Button>
-              <Button size="sm" variant="secondary" className="bg-hud-2" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
-                <ChevronUp className={cn("size-4 transition-transform duration-(--motion-quick)", open ? "rotate-180" : "")} />
-                {open ? "收起" : "更多"}
               </Button>
             </div>
-          </div>
-          {ready ? <CostLine trip={trip} restNet={session.rest.net} trips={trips} /> : null}
-          <p className="px-1 text-xs leading-snug text-subtle">
-            托盘买 $400 · 投放 $2,500 · FOB 入库 +$1,800 · 载人落地 $375 / 空投 $750 · 存活 +$500
-          </p>
+            {ready ? <CostLine trip={trip} restNet={session.rest.net} trips={trips} /> : null}
 
-          {open ? (
-            <div className="grid gap-2 desk:hidden">
-              <div className="rounded-lg bg-hud-2 p-3">
-                <p className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">地图航线</p>
-                <ul className="flex flex-col gap-1">
+            <div className="grid gap-2 short:hidden md:grid-cols-3">
+              <div className="rounded-lg bg-hud-2 p-2">
+                <p className="mb-1 text-xs font-medium tracking-wide text-muted uppercase">地图航线</p>
+                <ul className="flex flex-col gap-0.5">
                   {mapRoutes.map((row) => (
                     <li key={row.stop.id}>
                       <button
                         type="button"
                         onClick={() => onPickDest(row.stop)}
-                        className={cn("flex w-full items-baseline justify-between rounded-md py-1.5 text-left", row.stop.id === destId ? "text-fg" : "text-muted")}
+                        className={cn("flex w-full items-baseline justify-between rounded-md px-1.5 py-1 text-left hover:bg-fg/10", row.stop.id === destId ? "bg-hud" : "")}
                       >
                         <span className="text-sm">
                           {row.stop.short}
@@ -692,12 +626,38 @@ export function HaulHud({
                   ))}
                 </ul>
               </div>
-              <div className="rounded-lg bg-hud-2 p-3">
-                <p className="mb-2 text-xs font-medium tracking-wide text-muted uppercase">联合搜索</p>
-                <ul className="flex flex-col gap-1">
+              <div className="rounded-lg bg-hud-2 p-2">
+                <p className="mb-1 text-xs font-medium tracking-wide text-muted uppercase">卸货方式</p>
+                <ul className="flex flex-col gap-0.5">
+                  {dests.map((row) => (
+                    <li key={row.destKind}>
+                      <button
+                        type="button"
+                        onClick={() => onDestKind(row.destKind)}
+                        className={cn("flex w-full items-baseline justify-between rounded-md px-1.5 py-1 text-left hover:bg-fg/10", row.destKind === destKind ? "bg-hud" : "")}
+                      >
+                        <span className="text-sm">{destLabel(row.destKind)}</span>
+                        <span className={cn("font-mono text-sm tabular-nums", row.net >= 0 ? "text-ok" : "text-danger")}>{money(row.net)}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  <Toggle on={unloadAtFob} onClick={() => onUnloadAtFob(!unloadAtFob)}>
+                    FOB卸进库
+                  </Toggle>
+                  <Toggle on={expectSurvive} onClick={() => onExpectSurvive(!expectSurvive)}>
+                    乘客存活
+                  </Toggle>
+                  <Stepper label="击杀奖" value={expectKills} onChange={onExpectKills} max={12} />
+                </div>
+              </div>
+              <div className="rounded-lg bg-hud-2 p-2">
+                <p className="mb-1 text-xs font-medium tracking-wide text-muted uppercase">联合搜索</p>
+                <ul className="flex flex-col gap-0.5">
                   {uniquePlans(haulPool, 5).map((plan, i) => (
                     <li key={planKey(plan)}>
-                      <button type="button" onClick={() => applyPlan(plan)} className="flex w-full items-baseline justify-between rounded-md py-1.5 text-left">
+                      <button type="button" onClick={() => applyPlan(plan)} className="flex w-full items-baseline justify-between rounded-md px-1.5 py-1 text-left hover:bg-fg/10">
                         <span className="min-w-0 truncate text-sm">
                           {i + 1}. {plan.vehicle.nameZh} · {plan.stop.short}
                         </span>
@@ -708,8 +668,8 @@ export function HaulHud({
                 </ul>
               </div>
             </div>
-          ) : null}
-        </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );
