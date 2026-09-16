@@ -112,8 +112,8 @@ export function VehiclePicker({
                       <span className="min-w-0 font-mono text-xs tracking-wide text-subtle">{klass.en.toUpperCase()}</span>
                       <span className="shrink-0 font-mono text-sm font-medium tabular-nums text-ok">{money(row.price)}</span>
                     </span>
-                    <span className="vendor-slot my-1 flex h-20 w-full items-center justify-center desk:h-28">
-                      <VehicleGlyph id={row.id} className="h-16 w-full desk:h-24" />
+                    <span className="vendor-slot my-1 flex h-28 w-full items-center justify-center desk:h-40">
+                      <VehicleGlyph id={row.id} className="max-h-full w-full" />
                     </span>
                     <span className="truncate font-mono text-sm font-semibold tracking-wide">{NAME_EN[row.id] ?? row.id}</span>
                     <span className="truncate text-xs text-subtle">{row.nameZh}</span>
@@ -135,7 +135,7 @@ export function VehiclePicker({
         </div>
 
         <div className="flex shrink-0 items-center gap-3 border-t border-line bg-surface px-3 py-2">
-          <VehicleGlyph id={selectedId} className="h-10 w-20 shrink-0" />
+          <VehicleGlyph id={selectedId} className="h-12 w-24 shrink-0 desk:h-14 desk:w-28" />
           <p className="min-w-0 text-xs text-subtle">
             <span className="font-mono tracking-wide text-fg">{NAME_EN[selectedId]}</span>
             <span className="mx-2">·</span>

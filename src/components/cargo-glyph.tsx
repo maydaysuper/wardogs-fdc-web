@@ -7,7 +7,7 @@ export function CargoGlyph({ item, className }: { item: CargoItem; className?: s
       src={`/game/cargo/${item.id}.webp`}
       alt=""
       draggable={false}
-      className={cn("pointer-events-none object-contain object-center", className)}
+      className={cn("pointer-events-none object-contain object-center [image-rendering:auto]", className)}
     />
   );
 }

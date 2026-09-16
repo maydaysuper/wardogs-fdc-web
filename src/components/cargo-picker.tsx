@@ -93,7 +93,7 @@ export function CargoPicker({
         <div className="flex min-h-0 flex-1 flex-col desk:grid desk:grid-cols-[1fr_18rem]">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
             <div className="mb-3 flex items-center gap-2 text-xs text-subtle">
-              <VehicleGlyph id={vehicleId} className="h-8 w-16 shrink-0" />
+              <VehicleGlyph id={vehicleId} className="h-12 w-24 shrink-0" />
               <span className="min-w-0 truncate">
                 {NAME_EN[vehicleId]} · {vehicle.nameZh}
                 <span className="mx-1">·</span>
@@ -117,8 +117,8 @@ export function CargoPicker({
                         disabled={!canAdd}
                         className="flex min-w-0 flex-1 items-center gap-3 text-left disabled:opacity-40"
                       >
-                        <span className="vendor-slot relative inline-flex size-16 shrink-0 items-center justify-center rounded-sm bg-bg">
-                          <CargoGlyph item={item} className="h-14 w-14" />
+                        <span className="vendor-slot relative inline-flex size-20 shrink-0 items-center justify-center rounded-sm bg-bg desk:size-24">
+                          <CargoGlyph item={item} className="h-[88%] w-[88%]" />
                           {n > 0 ? (
                             <span className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-accent px-1 font-mono text-xs text-accent-fg">
                               {n}

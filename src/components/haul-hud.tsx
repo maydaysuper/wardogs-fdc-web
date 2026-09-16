@@ -432,12 +432,12 @@ export function HaulHud({
             onClick={() => setSheet("vehicle")}
             className="flex h-12 min-w-0 items-center gap-1.5 rounded-lg bg-hud-2 px-2 text-left"
           >
-            <VehicleGlyph id={vehicle.id} className="h-9 w-14 shrink-0" />
+            <VehicleGlyph id={vehicle.id} className="h-10 w-16 shrink-0" />
             <span className="min-w-0 truncate text-sm font-medium">{vehicle.nameZh}</span>
           </button>
           <button type="button" onClick={() => setSheet("cargo")} className="flex h-12 min-w-0 items-center gap-1.5 rounded-lg bg-hud-2 px-2 text-left">
             {bedItems.length ? (
-              bedItems.slice(0, 2).map((item, i) => (item ? <CargoGlyph key={`${item.id}-${i}`} item={item} className="-ml-1 h-8 w-8 first:ml-0" /> : null))
+              bedItems.slice(0, 2).map((item, i) => (item ? <CargoGlyph key={`${item.id}-${i}`} item={item} className="-ml-1 h-9 w-9 first:ml-0" /> : null))
             ) : (
               <span className="text-xs text-subtle">空斗</span>
             )}

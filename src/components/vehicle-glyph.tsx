@@ -12,7 +12,7 @@ export function VehicleGlyph({
       src={`/game/vehicles/${id}.webp`}
       alt=""
       draggable={false}
-      className={cn("pointer-events-none object-contain object-center", className)}
+      className={cn("pointer-events-none object-contain object-center [image-rendering:auto]", className)}
     />
   );
 }
