@@ -24,27 +24,20 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm install --no-audit --no-fund
-      - name: Build static site
-        run: npm run build:pages || true
+      - name: Build client-only SPA
+        run: npx vite build --config vite.spa.config.ts
         env:
-          NITRO_PRESET: github_pages
           GITHUB_PAGES: "1"
-      - name: Require prerendered HTML
+      - name: Prepare publish dir
         run: |
-          ls -la .output/public || true
-          test -e .output/public/index.html -o -e .output/public/404.html
-          if [ ! -f .output/public/index.html ] && [ -f .output/public/404.html ]; then
-            cp .output/public/404.html .output/public/index.html
-          fi
-          touch .output/public/.nojekyll
+          cp dist-spa/spa.html dist-spa/index.html
+          cp dist-spa/spa.html dist-spa/404.html
+          touch dist-spa/.nojekyll
+          ls -la dist-spa dist-spa/assets
       - name: Publish gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: .output/public
+          publish_dir: dist-spa
           force_orphan: true
-      - name: Also try official Pages deploy
-        continue-on-error: true
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .output/public
+          keep_files: false
